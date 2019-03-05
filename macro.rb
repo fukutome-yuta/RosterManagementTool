@@ -58,8 +58,10 @@ end
 =end
 
 def read_excel(excel, file, sheet_num = 1)
-  p '出勤時間を入力してください'
-  time = gets
+  p 'ちよつきんのたいきん時間を入力してね！'
+  go_home_time = gets
+  p 'きようのしゆつきんしかんをにゆうりよくしてね！'
+  attendance_time = gets
   book = excel.Workbooks.Open(file)
   sheet = book.Worksheets(sheet_num)
   today = Time.now()
@@ -83,6 +85,12 @@ def read_excel(excel, file, sheet_num = 1)
     #row.Columns.each do |cell|
       #end
     end
+      
+    # 保存
+    book.saveAs(file)
+
+    # ファイルを閉じる
+    book.close
 
   end  
 
