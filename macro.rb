@@ -69,11 +69,11 @@ def read_excel(excel, file, sheet_num = 1)
 
       if i == t.day then
         tmp_cell = cell.Address.to_s
-        go_home_cell = sheet.range(tmp_cell.gsub(/A/, 'C'))
-
-        target_cell = tmp_cell.delete("^0-9").to_i
+        go_home_cell = sheet.range(tmp_cell.gsub(/A/, 'd'))
         
         while go_home_cell.value != nil
+          
+          target_cell = tmp_cell.delete("^0-9").to_i
 
       if today.day == t.day then
 
