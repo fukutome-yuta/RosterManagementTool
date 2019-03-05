@@ -106,7 +106,7 @@ def main()
   # OLE32用FileSystemObject生成
   fso = WIN32OLE.new('Scripting.FileSystemObject')
   #file = fso.GetAbsolutePathName('./sample.xlsx')
-  file = fso.GetAbsolutePathName('C:/Users/HMP01156/OUT/ロンテック勤務表(2019年02月)(福留).xlsm')
+  file = fso.GetAbsolutePathName('sample.xlsx')
 
   excel = init_excel()
 
