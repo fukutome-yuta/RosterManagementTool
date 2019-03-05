@@ -1,26 +1,9 @@
-require 'win32ole'
-
-app = WIN32OLE.new('Excel.Application')
-book = app.Workbooks.Open(app.GetOpenFilename)
-
-#使っているワークシート範囲を一行ずつ取り出す
-for row in book.ActiveSheet.UsedRange.Rows do
-  #取り出した行から、セルを一つづつ取り出す
-  for cell in row.Columns do
-    p cell.Address
-    p cell.Value
-    p '-------'
-  end
-end
-
-book.close(false)
-app.quit
-
 #!/usr/bin/env ruby
 # -*- coding: utf-8 -*-
 STDOUT.sync = true
 
 require 'win32ole'
+require 'time'
 
 # Excel VBA定数のロード
 module Excel; end
@@ -28,7 +11,7 @@ module Excel; end
 def init_excel()
   # Excelオブジェクト生成
   excel = WIN32OLE.new('Excel.Application')
-  excel.visible = true
+  excel.visible = false
   # 上書きメッセージを抑制
   excel.displayAlerts = false
 
@@ -37,6 +20,7 @@ def init_excel()
   return excel
 end
 
+=begin
 def create_excel(excel, file)
   # 新規ブックを作成
   workbook = excel.workbooks.add
@@ -71,28 +55,44 @@ def create_excel(excel, file)
   # ファイルを閉じる
   workbook.close
 end
+=end
 
 def read_excel(excel, file, sheet_num = 1)
   book = excel.Workbooks.Open(file)
   sheet = book.Worksheets(sheet_num)
+  today = Time.now()
 
   # 列ごとに処理
-  sheet.UsedRange.Rows.each do |row|
+  #sheet.UsedRange.Rows.each do |row|
     # セルごとに処理
-    row.Columns.each do |cell|
-      puts cell.value
+
+    sheet.range('A10:A40').each do |cell|
+
+      t = cell.value
+
+      if today.day == t.day then
+        c = cell.Address.to_s
+        
+        puts sheet.range(c.gsub(/A/, 'C')).value = "10:00"
+        puts cell.Address
+        puts today.day - 1
+      end
+      
+    #row.Columns.each do |cell|
+      #end
     end
-  end
-end
+
+  end  
 
 def main()
   # OLE32用FileSystemObject生成
   fso = WIN32OLE.new('Scripting.FileSystemObject')
-  file = fso.GetAbsolutePathName('./sample.xlsx')
+  #file = fso.GetAbsolutePathName('./sample.xlsx')
+  file = fso.GetAbsolutePathName('C:/Users/HMP01156/OUT/ロンテック勤務表(2019年02月)(福留).xlsm')
 
   excel = init_excel()
 
-  create_excel(excel, file)
+  #create_excel(excel, file)
   read_excel(excel, file)
 
   excel.quit()
