@@ -24,20 +24,16 @@ end
 def create_excel(excel, file)
   # 新規ブックを作成
   workbook = excel.workbooks.add
-
   # 先頭シートを選択
   sheet = workbook.sheets[1]
-
   # 九九の表を作成
   (1..9).each do |i|
     sheet.rows[1].columns[i + 1] = i
     sheet.rows[i + 1].columns[1] = i
   end
   sheet.range('B2:J10').value = '=$A2*B$1'
-
   # ボーダーライン
   sheet.range('A1:J10').borders.lineStyle = Excel::XlContinuous
-
   # 表のヘッダー
   range = sheet.range('A1:A10,B1:J1')
   # 背景色
@@ -45,41 +41,51 @@ def create_excel(excel, file)
   # フォント
   range.font.themeColor = Excel::XlThemeColorDark1
   range.font.bold = true
-
   # 列の幅
   sheet.columns('A:J').columnWidth = 6
-
   # 保存
   workbook.saveAs(file)
-
   # ファイルを閉じる
   workbook.close
 end
 =end
 
 def read_excel(excel, file, sheet_num = 1)
-  p 'ちよつきんのたいきん時間を入力してね！'
+  puts '直近の退勤時間を入力してね！'
   go_home_time = gets
-  p 'きようのしゆつきんしかんをにゆうりよくしてね！'
+  puts '今日の出勤時間を入力してね！'
   attendance_time = gets
   book = excel.Workbooks.Open(file)
   sheet = book.Worksheets(sheet_num)
   today = Time.now()
-
-  # 列ごとに処理
-  #sheet.UsedRange.Rows.each do |row|
-    # セルごとに処理
+  i = today.day - 1
+  
+  
+  #just_before_day = 
 
     sheet.range('A10:A40').each do |cell|
 
       t = cell.value
 
-      if today.day == t.day then
-        c = cell.Address.to_s
+      if i == t.day then
+        tmp_cell = cell.Address.to_s
+        go_home_cell = sheet.range(tmp_cell.gsub(/A/, 'C'))
+
+        target_cell = tmp_cell.delete("^0-9").to_i
         
-        puts sheet.range(c.gsub(/A/, 'C')).value = time
-        puts cell.Address
-        puts today.day - 1
+        while go_home_cell.value != nil
+
+      if today.day == t.day then
+
+        tmp_cell = cell.Address.to_s
+        attendance_cell = sheet.range(tmp_cell.gsub(/A/, 'C'))
+        attendance_cell.value = attendance_time
+        attendance_cell.change_horizontal_alignment("center")
+
+        
+
+
+
       end
       
     #row.Columns.each do |cell|
