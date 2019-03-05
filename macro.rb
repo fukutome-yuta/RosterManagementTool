@@ -58,6 +58,8 @@ end
 =end
 
 def read_excel(excel, file, sheet_num = 1)
+  p '出勤時間を入力してください'
+  time = gets
   book = excel.Workbooks.Open(file)
   sheet = book.Worksheets(sheet_num)
   today = Time.now()
@@ -73,7 +75,7 @@ def read_excel(excel, file, sheet_num = 1)
       if today.day == t.day then
         c = cell.Address.to_s
         
-        puts sheet.range(c.gsub(/A/, 'C')).value = "10:00"
+        puts sheet.range(c.gsub(/A/, 'C')).value = time
         puts cell.Address
         puts today.day - 1
       end
