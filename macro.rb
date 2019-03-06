@@ -4,6 +4,7 @@ STDOUT.sync = true
 
 require 'win32ole'
 require 'time'
+require 'mail'
 
 # Excel VBA定数のロード
 module Excel; end
@@ -20,37 +21,48 @@ def init_excel()
   return excel
 end
 
-=begin
-def create_excel(excel, file)
-  # 新規ブックを作成
-  workbook = excel.workbooks.add
-  # 先頭シートを選択
-  sheet = workbook.sheets[1]
-  # 九九の表を作成
-  (1..9).each do |i|
-    sheet.rows[1].columns[i + 1] = i
-    sheet.rows[i + 1].columns[1] = i
-  end
-  sheet.range('B2:J10').value = '=$A2*B$1'
-  # ボーダーライン
-  sheet.range('A1:J10').borders.lineStyle = Excel::XlContinuous
-  # 表のヘッダー
-  range = sheet.range('A1:A10,B1:J1')
-  # 背景色
-  range.interior.themeColor = Excel::XlThemeColorAccent1
-  # フォント
-  range.font.themeColor = Excel::XlThemeColorDark1
-  range.font.bold = true
-  # 列の幅
-  sheet.columns('A:J').columnWidth = 6
-  # 保存
-  workbook.saveAs(file)
-  # ファイルを閉じる
-  workbook.close
-end
-=end
+def greeting(today)
 
-def read_excel(excel, file, sheet_num = 1)
+  now = today.strftime('%Y年 %m月 %x日 (%a)')
+  judge_hour = today.hour
+
+  if judge_hour >= 8 and judge_hour <= 12　then
+    greeting = 'おはよう！\n今日は ' + now
+  elsif judge_hour >=13 and judge_hour <= 16 then
+    greeting = 'こんにちは！\n今日は ' + now
+  elsif judge_hour == 17 then
+    greeting = 'お疲れ様！\n今日は ' + now
+  end
+
+  puts greeting
+end
+
+def send_mail(excel, file)
+
+  Mail.defaults do
+    delivery_method :smtp, {
+      :address => 'smtp.gmail.com',
+      :port => 587,
+      :domain => 'example.com',
+      :user_name => "#{mail_from}",
+      :password => "#{mail_passwd}",
+      :authentication => :login,
+      :enable_starttls_auto => true
+    }
+  end
+
+  mail = Mail.new do
+    from    'from@example.co.jp'
+    to      'to@example.co.jp'
+    subject 'subject text'
+    body    ''
+    add_file './sample/xlxs'
+  end
+  
+end
+
+
+def update_excel(excel, file, sheet_num = 1, today)
   
   puts '直近の退勤時間を入力してね！'
   tmp_end_time = gets
@@ -64,7 +76,6 @@ def read_excel(excel, file, sheet_num = 1)
   book = excel.Workbooks.Open(file)
   sheet = book.Worksheets(sheet_num)
   
-  today = Time.now()
   last_day = today.day - 1
 
     sheet.range('A10:A40').each do |cell|
@@ -110,6 +121,11 @@ def read_excel(excel, file, sheet_num = 1)
   end  
 
 def main()
+
+  today = Time.now()
+
+  greeting(today)
+  
   # OLE32用FileSystemObject生成
   fso = WIN32OLE.new('Scripting.FileSystemObject')
   #file = fso.GetAbsolutePathName('./sample.xlsx')
@@ -117,8 +133,8 @@ def main()
 
   excel = init_excel()
 
-  #create_excel(excel, file)
-  read_excel(excel, file)
+  send_mail(excel, file)
+  update_excel(excel, file, today)
 
   excel.quit()
 end
