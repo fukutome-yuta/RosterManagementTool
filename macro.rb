@@ -51,54 +51,61 @@ end
 =end
 
 def read_excel(excel, file, sheet_num = 1)
+  
   puts '直近の退勤時間を入力してね！'
-  go_home_time = gets
+  tmp_end_time = gets
+  
   puts '今日の出勤時間を入力してね！'
-  attendance_time = gets
+  tmp_start_time = gets
+  
+  go_home_time = Time.parse(tmp_end_time)
+  attendance_time = Time.parse(tmp_start_time)
+  
   book = excel.Workbooks.Open(file)
   sheet = book.Worksheets(sheet_num)
+  
   today = Time.now()
-  i = today.day - 1
-  
-  
-  #just_before_day = 
+  last_day = today.day - 1
 
     sheet.range('A10:A40').each do |cell|
 
-      t = cell.value
+      tmp_day = cell.value
 
-      if i == t.day then
-        tmp_cell = cell.Address.to_s
-        go_home_cell = sheet.range(tmp_cell.gsub(/A/, 'D'))
+      if last_day == tmp_day.day then
         
-        while go_home_cell.value != nil
+        tmp_end_cell = cell.Address.to_s
+        go_home_cell = sheet.range(tmp_end_cell.gsub(/A/, 'D'))
+        target_cell_No = tmp_end_cell.delete("^0-9").to_i
+
+        while go_home_cell.value == nil do
           
-          target_cell = tmp_cell.delete("^0-9").to_i
-          target_cell =- 1
-          heet.range('$D$' + target_cell)
+          target_cell_No = target_cell_No - 1
+          target_cell_address = '$D$' + target_cell_No.to_s
+          go_home_cell = sheet.range(target_cell_address)
 
-      if today.day == t.day then
+        end
 
-        tmp_cell = cell.Address.to_s
-        attendance_cell = sheet.range(tmp_cell.gsub(/A/, 'C'))
+        go_home_cell.value = go_home_time
+
+      end
+
+      if today.day == tmp_day.day then
+
+        tmp_start_cell = cell.Address.to_s
+        attendance_cell = sheet.range(tmp_start_cell.gsub(/A/, 'C'))
         attendance_cell.value = attendance_time
-        attendance_cell.change_horizontal_alignment("center")
-
-        
-
-
 
       end
       
-    #row.Columns.each do |cell|
-      #end
     end
-      
+        
     # 保存
     book.saveAs(file)
 
     # ファイルを閉じる
     book.close
+        
+    puts '更新完了！'
 
   end  
 
@@ -106,7 +113,7 @@ def main()
   # OLE32用FileSystemObject生成
   fso = WIN32OLE.new('Scripting.FileSystemObject')
   #file = fso.GetAbsolutePathName('./sample.xlsx')
-  file = fso.GetAbsolutePathName('sample.xlsx')
+  file = fso.GetAbsolutePathName('C:/Users/HMP01156/OUT/ロンテック勤務表(2019年02月)(福留).xlsm')
 
   excel = init_excel()
 
@@ -117,3 +124,6 @@ def main()
 end
 
 main()
+
+puts 'END'
+sleep(3)
