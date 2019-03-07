@@ -201,29 +201,28 @@ def mail_creation(destination, today)
   subject = today.strftime('_勤務表 %Y年%m月分')
   case destination
   when 'bright'
-    mail_destination = {
-                        from:     '',
-                        to:       '',
-                        cc:       '',
-                        subject:  '',
-                        body:     '各位
+    mail_info = {
+                  from:     '',
+                  to:       '',
+                  cc:       '',
+                  subject:  '',
+                  body:     '各位
 
-                        お疲れ様です。です。
-                        今月分の現場勤務表を送付致します。
-                        ご確認よろしくお願いいたします。
-                        
-                        '
-                       }
+                  お疲れ様です。BRS福留です。
+                  今月分の現場勤務表を送付致します。
+                  ご確認よろしくお願いいたします。
+                  '
+                }
   when 'me'
-    mail_destination = {
-                        from:     '',
-                        to:       '',
-                        cc:       '',
-                        subject:  '',
-                        body:     '今日中に自社勤務表を自社宛にメールしてね！'
-                       }
+    mail_info = {
+                  from:     '',
+                  to:       '',
+                  cc:       '',
+                  subject:  '',
+                  body:     '今日中に自社勤務表を宛にメールしてね！'
+                }
   end
-  return mail_destination
+  return mail_info
 end
 
 def main()
