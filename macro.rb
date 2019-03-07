@@ -159,12 +159,8 @@ def send_mail(destination, today)
 
   mail_info = mail_creation(destination, today)
 
-  puts "メールの内容を確認してね！
-        差出人：#{mail_info[from]}
-        宛先：#{mail_info[to]}
-        cc：#{mail_info[cc]}
-        件名：#{mail_info[subject]}
-        本文：#{mail_info[body]}"
+  puts "メールの内容を確認してね！\n差出人：#{mail_info[from]}\n宛先：#{mail_info[to]}\
+  \ncc：#{mail_info[cc]}\n件名：#{mail_info[subject]}\n本文：#{mail_info[body]}"
   question = 'この内容で送ってもいい？(y/n)'
   sendmail_decision = validate_input(question)
   
@@ -196,6 +192,53 @@ def send_mail(destination, today)
   end
 end
 
+def mail_creation(destination, today)
+
+  subject = today.strftime('_勤務表 %Y年%m月分')
+  case destination
+  when 'bright'
+    mail_info = {
+                  from:     '',
+                  to:       '',
+                  cc:       '',
+                  subject:  '',
+                  body:     "各位\n\nお疲れ様です。です。\n今月分の現場勤務表を送付致します。\nご確認よろしくお願いいたします。\n\n"
+                }
+  when 'me'
+    mail_info = {
+                  from:     '',
+                  to:       '',
+                  cc:       '',
+                  subject:  '',
+                  body:     '今日中に自社勤務表を宛にメールしてね！'
+                }
+  end
+  return mail_info
+end
+
+def main()
+  today = Time.now
+
+  greeting(today)
+
+  # OLE32用FileSystemObject生成
+  fso = WIN32OLE.new('Scripting.FileSystemObject')
+  #file = fso.GetAbsolutePathName('./sample.xlsx')
+  file = fso.GetAbsolutePathName('sample.xlsm')
+
+  excel = init_excel()
+  update_excel(excel, file, today)
+  excel.quit()
+
+  sendmail_decision(today) 
+
+  puts @closing_remarks
+  sleep(3)
+end
+
+<<<<<<< HEAD
+main()
+=======
 def mail_creation(destination, today)
 
   subject = today.strftime('_勤務表 %Y年%m月分')
