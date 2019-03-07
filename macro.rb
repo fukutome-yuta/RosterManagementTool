@@ -208,7 +208,7 @@ def mail_creation(destination, today)
                   subject:  '',
                   body:     '各位
 
-                  お疲れ様です。BRS福留です。
+                  お疲れ様です。です。
                   今月分の現場勤務表を送付致します。
                   ご確認よろしくお願いいたします。
                   '
