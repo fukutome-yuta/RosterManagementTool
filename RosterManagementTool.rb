@@ -218,27 +218,27 @@ def send_mail(destination)
   sendmail_decision = validate_input(question)
   
   if @answer == 'y'
-    #Mail.defaults do
-    #  delivery_method :smtp, {
-    #    :address => 'sample',
-    #    :port => 25,
-    #    :domain => 'sample',
-    #    :user_name => "#{mail_from}",
-    #    :password => "#{mail_passwd}",
-    #    :authentication => :login,
-    #    :enable_starttls_auto => true
-    #  }
-    #end
-#
-    #mail = Mail.new do
-    #  from     "#{mail_info[:from]}"
-    #  to       "#{mail_info[:to]}"
-    #  cc       "#{mail_info[:cc]}"
-    #  subject  "#{mail_info[:subject]}"
-    #  body     "#{mail_info[:body]}"
-    #  add_file ""
-    #end
-    #mail.deliver
+    Mail.defaults do
+      delivery_method :smtp, {
+        :address              => 'sample',
+        :port                 => 25,
+        :domain               => 'sample',
+        :user_name            => "sample",
+        :password             => "sample",
+        :authentication       => :login,
+        :enable_starttls_auto => true
+      }
+    end
+
+    mail = Mail.new do
+      from     "#{mail_info[:from]}"
+      to       "#{mail_info[:to]}"
+      cc       "#{mail_info[:cc]}"
+      subject  "#{mail_info[:subject]}"
+      body     "#{mail_info[:body]}"
+      add_file ""
+    end
+    mail.deliver
     puts '送信完了！'
   elsif @answer == 'n'
     puts '送信をキャンセルしたよ！'
@@ -250,20 +250,20 @@ def mail_creation(destination)
   case destination
   when 'bright'
     mail_info = {
-                  from:     '',
-                  to:       '',
-                  cc:       '',
-                  subject:  subject,
-                  body:     "各位\n\nお疲れ様です。です。\n今月分の現場勤務表を送付致します。\nご確認よろしくお願いいたします。\n\n"
-                }
+      from:     '',
+      to:       '',
+      cc:       '',
+      subject:  subject,
+      body:     "各位\n\nお疲れ様です。です。\n今月分の現場勤務表を送付致します。\nご確認よろしくお願いいたします。\n\n"
+    }
   when 'me'
     mail_info = {
-                  from:     '',
-                  to:       '',
-                  cc:       '',
-                  subject:  subject,
-                  body:     '今日中に自社勤務表を宛にメールしてね！'
-                }
+      from:     '',
+      to:       '',
+      cc:       '',
+      subject:  subject,
+      body:     '今日中に自社勤務表を宛にメールしてね！'
+    }
   end
   return mail_info
 end
