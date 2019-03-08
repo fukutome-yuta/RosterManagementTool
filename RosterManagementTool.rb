@@ -5,7 +5,7 @@ STDOUT.sync = true
 require 'win32ole'
 require 'time'
 require 'date'
-#require 'mail'
+require 'mail'
 
 # Excel VBA定数のロード
 module Excel; end
