@@ -43,21 +43,26 @@ def find_target_cell(sheet, cell, purpose)
   tmp_target_cell_address = cell.Address.to_s
   target_cell = sheet.range(tmp_target_cell_address.gsub(/A/, 'D'))
   target_cell_address_No = tmp_target_cell_address.delete("^0-9").to_i
-
+  
   case purpose
   when 'Update'
-    purpose = '$D$'
+    while target_cell.value == nil do      
+      target_cell_address_No = target_cell_address_No - 1
+      target_cell_address = '$D$' + target_cell_address_No.to_s
+      target_cell = sheet.range(target_cell_address)
+    end
   when 'SendMail'
     purpose = '$A$'
     if target_cell.value != nil
       target_cell = sheet.range(tmp_target_cell_address)
+    else
+      while target_cell.value == nil do      
+        target_cell_address_No = target_cell_address_No - 1
+        target_cell_address = '$D$' + target_cell_address_No.to_s
+        target_cell = sheet.range(target_cell_address)
+      end
+      target_cell = sheet.range(target_cell_address.gsub(/D/, 'A'))
     end
-  end
-
-  while target_cell.value == nil do      
-    target_cell_address_No = target_cell_address_No - 1
-    target_cell_address = purpose + target_cell_address_No.to_s
-    target_cell = sheet.range(target_cell_address)
   end
   return target_cell 
 end
@@ -71,20 +76,20 @@ end
 def validate_input(question)
   loop do
     puts question
-    @answer = gets.chomp
+    answer = gets.chomp
 
-    if @answer != "y" and @answer != "n"
+    if answer != "y" and answer != "n"
       puts '[y]か[n]で入力してね'
-    elsif @answer == "y" or @answer == "n"
-      break
+    elsif answer == "y" or answer == "n"
+      break answer
     end
   end
 end
 
 def update_excel(excel, file)
   worktime_question = '出退勤時刻を更新する？(y/n)'
-  validate_input(worktime_question)
-  answer_of_worktime = @answer  
+  answer_of_worktime = validate_input(worktime_question)
+  #answer_of_worktime = @answer  
   if answer_of_worktime == 'y'
     puts '直近の退勤時間を入力してね！'
     clock_out = gets.chomp
@@ -93,8 +98,8 @@ def update_excel(excel, file)
   end
 
   holidays_question = '休みの予定を更新する？(y/n)'
-  validate_input(holidays_question)
-  answer_of_holidays = @answer
+  answer_of_holidays = validate_input(holidays_question)
+  #answer_of_holidays = @answer
   if answer_of_holidays == 'y'
     loop do
       puts '休む予定の日付を[1～31]の数字で入力してね！'
@@ -169,12 +174,13 @@ def update_excel(excel, file)
       purpose = 'SendMail'
       target_cell = find_target_cell(sheet, cell, purpose)
       @to_bright_day = target_cell.value
-    elsif end_of_month.day == tmp_day.day
-      purpose = 'SendMail'
-      target_cell = find_target_cell(sheet, cell, purpose)
-      @to_me_day = target_cell.value
     end
   end
+
+  purpose = 'SendMail'
+  end_of_month_cell = sheet.range('A40')
+  last_working_day_cell = find_target_cell(sheet, end_of_month_cell, purpose)
+  @to_me_day = last_working_day_cell.value
   # 保存
   book.saveAs(file)
   # ファイルを閉じる
@@ -183,26 +189,29 @@ def update_excel(excel, file)
 end
 
 def sendmail_decision()
-  case @today.day
-  when @to_bright_day.day
-    puts '今日は現場勤務表提出日だよ！勤務表の中身を確認してね！'
-    question = '今すぐ自社宛てにメールを送る？(y/n)'
-    validate_input(question)
-    if @answer == 'y'
-      destination = 'bright'
-      send_mail(destination)
-    elsif @answer == 'n'
-      puts "送信を見送るよ！\nあとで確認してから必ず今日中に送ってね！"
+  if @to_bright_day != nil
+    if @today.day == @to_bright_day.day
+      puts '今日は現場勤務表提出日だよ！勤務表の中身を確認してね！'
+      question = '今すぐ自社宛てにメールを送る？(y/n)'
+      to_bright_answer = validate_input(question)
+      if to_bright_answer == 'y'
+        destination = 'bright'
+        send_mail(destination)
+      elsif to_bright_answer == 'n'
+        puts "送信を見送るよ！\nあとで確認してから必ず今日中に送ってね！"
+      end
     end
-  when @to_me_day.day
-    puts '今日は月末だよ！勤務表の中身を確認してね！'
-    question = '今すぐ自分宛てにメールを送る？(y/n)'
-    @answer = validate_input(question)
-    if @answer == 'y'
-      destination = 'me'
-      send_mail(destination)
-    elsif @answer == 'n'
-      puts "送信を見送るよ！\nあとで確認してから必ず今日中に送ってね！"
+  elsif @to_me_day.day != nil
+    if @today.day == @to_me_day.day
+      puts '今日は月末だよ！勤務表の中身を確認してね！'
+      question = '今すぐ自分宛てにメールを送る？(y/n)'
+      to_me_answer = validate_input(question)
+      if to_me_answer == 'y'
+        destination = 'me'
+        send_mail(destination)
+      elsif to_me_answer == 'n'
+        puts "送信を見送るよ！\nあとで確認してから必ず今日中に送ってね！"
+      end
     end
   end
 end
@@ -217,36 +226,24 @@ def send_mail(destination)
   question = 'この内容で送ってもいい？(y/n)'
   sendmail_decision = validate_input(question)
   
-  if @answer == 'y'
-    Mail.defaults do
-      delivery_method :smtp, {
-        :address              => 'sample',
-        :port                 => 25,
-        :domain               => 'sample',
-        :user_name            => "sample",
-        :password             => "sample",
-        :authentication       => :login,
-        :enable_starttls_auto => true
-      }
-    end
-
+  if sendmail_decision == 'y'
     mail = Mail.new do
       from     "#{mail_info[:from]}"
       to       "#{mail_info[:to]}"
       cc       "#{mail_info[:cc]}"
       subject  "#{mail_info[:subject]}"
       body     "#{mail_info[:body]}"
-      add_file ""
+      add_file ''
     end
     mail.deliver
     puts '送信完了！'
-  elsif @answer == 'n'
+  elsif sendmail_decision == 'n'
     puts '送信をキャンセルしたよ！'
   end
 end
 
 def mail_creation(destination)
-  subject = @today.strftime('_勤務表 %Y年%m月分')
+  subject = @today.strftime('_現場勤務表 %Y年%m月分')
   case destination
   when 'bright'
     mail_info = {
@@ -260,7 +257,6 @@ def mail_creation(destination)
     mail_info = {
       from:     '',
       to:       '',
-      cc:       '',
       subject:  subject,
       body:     '今日中に自社勤務表を宛にメールしてね！'
     }
@@ -270,25 +266,18 @@ end
 
 def main()
   @today = Time.now
-  #@today = Time.new(@today.year, @today.month, 18, 9, 30)
-  end_of_month = Time.new(@today.year, @today.month, -1, 13, 00)
-  @today = end_of_month
-
   greeting()
 
   # OLE32用FileSystemObject生成
   fso = WIN32OLE.new('Scripting.FileSystemObject')
-  #file = fso.GetAbsolutePathName('./sample.xlsx')
-  file = fso.GetAbsolutePathName('C:\Users\HMP01156\OUT\tmp.xlsm')
+  file = fso.GetAbsolutePathName('tmp.xlsm')
 
   excel = init_excel()
   update_excel(excel, file)
   excel.quit()
 
-  if @to_bright_day != nil or @today.day == @to_me_day.day
-    sendmail_decision()
-  end
-
+  sendmail_decision()
+  
   puts @closing_remarks
   sleep(3)
 end
