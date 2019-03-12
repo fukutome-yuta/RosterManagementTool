@@ -7,15 +7,16 @@ require 'time'
 require 'date'
 require 'mail'
 
+TODAY = Time.now
+
 # Excel VBA定数のロード
 module Excel; end
 
 def main()
-  @today = Time.now
   greeting()
 
   fso = WIN32OLE.new('Scripting.FileSystemObject')
-  file = fso.GetAbsolutePathName('tmp.xlsm')
+  file = fso.GetAbsolutePathName('sample.xlsm')
 
   excel = init_excel()
   update_excel(excel, file)
@@ -28,8 +29,8 @@ def main()
 end
 
 def greeting()
-  now = @today.strftime('%Y年 %m月 %d日 (%a)')
-  judge_hour = @today.hour
+  now = TODAY.strftime('%Y年 %m月 %d日 (%a)')
+  judge_hour = TODAY.hour
 
   #現在時刻で挨拶の内容を変更する
   if judge_hour >= 8 and judge_hour <= 12
@@ -108,7 +109,7 @@ def update_excel(excel, file)
   
   book = excel.Workbooks.Open(file)
   sheet = book.Worksheets(1)
-  last_day = @today.day - 1
+  last_day = TODAY.day - 1
 
   sheet.range('A10:A40').each do |cell|
     index_day = cell.value
@@ -120,7 +121,7 @@ def update_excel(excel, file)
         clock_out_cell.value = clock_out
       end
 
-      if @today.day == index_day.day
+      if TODAY.day == index_day.day
         update_clock_in(sheet, cell, clock_in)
       end
       @result_report = '更新完了！'
@@ -139,10 +140,10 @@ def update_excel(excel, file)
       @result_report = '更新完了！'
     end
 
-    if @today.day == 18 and index_day.day == 18
+    if TODAY.day == 18 and index_day.day == 18
       purpose = 'SendMail'
       target_cell = find_target_cell(sheet, cell, purpose)
-      @to_bright = target_cell.value
+      @to_mycompany = target_cell.value
     end
   end
 
@@ -208,20 +209,20 @@ end
 
 #現場勤務表送付日、自社勤務表送付日判断
 def sendmail_decision()
-  if @to_bright != nil
-    if @today.day == @to_bright.day
+  if @to_mycompany != nil
+    if TODAY.day == @to_mycompany.day
       puts '今日は現場勤務表提出日だよ！勤務表の中身を確認してね！'
       question = '今すぐ自社宛てにメールを送る？(y/n)'
-      send_to_bright = validate_input(question)
-      if send_to_bright
-        destination = 'bright'
+      send_to_mycompany = validate_input(question)
+      if send_to_mycompany
+        destination = 'to_mycompany'
         send_mail(destination)
       else
         puts "送信を見送るよ！\nあとで確認してから必ず今日中に送ってね！"
       end
     end
   else
-    if @today.day == @to_me.day
+    if TODAY.day == @to_me.day
       puts '今日は月末だよ！勤務表の中身を確認してね！'
       question = '今すぐ自分宛てにメールを送る？(y/n)'
       send_to_me = validate_input(question)
@@ -253,36 +254,37 @@ def send_mail(destination)
       cc       "#{mail_info[:cc]}"
       subject  "#{mail_info[:subject]}"
       body     "#{mail_info[:body]}"
-      add_file ''
+      add_file 'sample.xlsm'
     end
     mail.deliver
     puts '送信完了！'
   else
-    puts '送信をキャンセルしたよ！'
+    puts "送信をキャンセルしたよ！\nあとで確認してから必ず今日中に送ってね！"
   end
 end
 
 #現場、自社宛でメールの内容を変える
 def mail_creation(destination)
-  subject = @today.strftime('_現場勤務表 %Y年%m月分')
-  case destination
-  when 'bright'
-    mail_info = {
-      from:     '',
-      to:       '',
-      cc:       '',
-      subject:  subject,
-      body:     "各位\n\nお疲れ様です。です。\n今月分の現場勤務表を送付致します。\nご確認よろしくお願いいたします。\n\n"
-    }
-  when 'me'
-    mail_info = {
-      from:     '',
-      to:       '',
-      subject:  subject,
-      body:     '今日中に自社勤務表を宛にメールしてね！'
-    }
+    subject = TODAY.strftime('_現場勤務表 %Y年%m月分')
+    case destination
+    when 'to_mycompany'
+      mail_info = {
+        from:     '',
+        to:       '',
+        cc:       '',
+        subject:  subject,
+        body:     "各位\n\nお疲れ様です。\n今月分の現場勤務表を送付致します。\nご確認よろしくお願いいたします。"
+      }
+    when 'me'
+      mail_info = {
+        from:     '',
+        to:       '',
+        cc:       '',
+        subject:  subject,
+        body:     "今日中に自社勤務表を送ってね！"
+      }
+    end
+    return mail_info
   end
-  return mail_info
-end
 
 main()
